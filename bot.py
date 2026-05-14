@@ -17,16 +17,18 @@ _missing = [v for v in ("TELEGRAM_TOKEN", "GEMINI_KEY") if not os.getenv(v)]
 if _missing:
     raise EnvironmentError(f"Missing environment variables: {', '.join(_missing)}")
 
-client = genai.Client(api_key=os.getenv("GEMINI_KEY"))
+client = genai.Client(
+    api_key=os.getenv("GEMINI_KEY"),
+    http_options=types.HttpOptions(api_version="v1alpha"),
+)
 
 PROMPT = (
     "Generate a realistic image of this person in a gym setting, "
     "wearing athletic clothes, maintaining their facial features and build."
 )
 MODELS = [
+    "gemini-2.0-flash-exp",
     "gemini-2.0-flash-exp-image-generation",
-    "gemini-2.5-flash-preview-05-20",
-    "gemini-2.0-flash",
 ]
 MAX_DAILY = 3
 
