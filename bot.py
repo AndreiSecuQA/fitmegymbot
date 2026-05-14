@@ -13,6 +13,10 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+_missing = [v for v in ("TELEGRAM_TOKEN", "GEMINI_KEY") if not os.getenv(v)]
+if _missing:
+    raise EnvironmentError(f"Missing environment variables: {', '.join(_missing)}")
+
 genai.configure(api_key=os.getenv("GEMINI_KEY"))
 model = genai.GenerativeModel("gemini-2.0-flash-exp")
 
