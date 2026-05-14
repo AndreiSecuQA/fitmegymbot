@@ -59,7 +59,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         photo_bytes = bytes(await file.download_as_bytearray())
 
         response = client.models.generate_content(
-            model="gemini-2.0-flash-exp",
+            model="gemini-2.0-flash-exp-image-generation",
             contents=[
                 types.Part.from_bytes(data=photo_bytes, mime_type="image/jpeg"),
                 PROMPT,
