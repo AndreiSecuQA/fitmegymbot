@@ -5,8 +5,8 @@ from datetime import date
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import Application, MessageHandler, filters, ContextTypes
-import google.generativeai as genai
-import PIL.Image
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
@@ -17,8 +17,7 @@ _missing = [v for v in ("TELEGRAM_TOKEN", "GEMINI_KEY") if not os.getenv(v)]
 if _missing:
     raise EnvironmentError(f"Missing environment variables: {', '.join(_missing)}")
 
-genai.configure(api_key=os.getenv("GEMINI_KEY"))
-model = genai.GenerativeModel("gemini-2.0-flash-exp")
+client = genai.Client(api_key=os.getenv("GEMINI_KEY"))
 
 PROMPT = (
     "Generate a realistic image of this person in a gym setting, "
@@ -57,12 +56,17 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         file = await context.bot.get_file(update.message.photo[-1].file_id)
-        photo_bytes = await file.download_as_bytearray()
-        img = PIL.Image.open(io.BytesIO(photo_bytes))
+        photo_bytes = bytes(await file.download_as_bytearray())
 
-        response = model.generate_content(
-            [img, PROMPT],
-            generation_config={"response_modalities": ["IMAGE", "TEXT"]},
+        response = client.models.generate_content(
+            model="gemini-2.0-flash-exp",
+            contents=[
+                types.Part.from_bytes(data=photo_bytes, mime_type="image/jpeg"),
+                PROMPT,
+            ],
+            config=types.GenerateContentConfig(
+                response_modalities=["IMAGE", "TEXT"]
+            ),
         )
 
         if not response.candidates:
@@ -72,7 +76,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         image_data = None
         for part in response.candidates[0].content.parts:
-            if hasattr(part, "inline_data") and part.inline_data:
+            if part.inline_data:
                 image_data = part.inline_data.data
                 break
 
@@ -80,10 +84,6 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             decrement(user_id)
             await update.message.reply_text("🚫 No image generated. Your photo may have triggered safety filters.")
             return
-
-        if isinstance(image_data, str):
-            import base64
-            image_data = base64.b64decode(image_data)
 
         uses_left = MAX_DAILY - user_usage[user_id]["count"]
         label = "generation" if uses_left == 1 else "generations"
