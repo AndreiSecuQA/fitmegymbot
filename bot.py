@@ -167,8 +167,10 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await query.message.edit_text(f"⏳ Generating {LABELS[choice]}... Please wait.")
 
+    photo_bytes = pending_photos.pop(user_id)
+
     try:
-        response = await generate_image(pending_photos[user_id], PROMPTS[choice])
+        response = await generate_image(photo_bytes, PROMPTS[choice])
 
         if response is None:
             decrement(user_id)
@@ -213,6 +215,8 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.message.reply_text("🚫 Blocked by safety filters. Please try a different photo.")
         else:
             await query.message.reply_text("❌ Something went wrong. Please try again.")
+    finally:
+        pending_photos.pop(user_id, None)
 
 
 async def handle_reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
