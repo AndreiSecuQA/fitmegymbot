@@ -22,6 +22,12 @@ client = genai.Client(
     http_options=types.HttpOptions(api_version="v1alpha"),
 )
 
+try:
+    _all_models = [m.name for m in client.models.list()]
+    logger.info("Available models: %s", _all_models)
+except Exception as _e:
+    logger.warning("Could not list models: %s", _e)
+
 PROMPT = (
     "Generate a realistic image of this person in a gym setting, "
     "wearing athletic clothes, maintaining their facial features and build."
@@ -29,6 +35,9 @@ PROMPT = (
 MODELS = [
     "gemini-2.0-flash-exp",
     "gemini-2.0-flash-exp-image-generation",
+    "gemini-2.0-flash-preview-image-generation",
+    "gemini-2.5-flash-preview-05-20",
+    "gemini-2.5-pro-preview-05-06",
 ]
 MAX_DAILY = 3
 
