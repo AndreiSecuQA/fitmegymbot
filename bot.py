@@ -62,7 +62,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         response = model.generate_content(
             [img, PROMPT],
-            generation_config=genai.GenerationConfig(response_modalities=["IMAGE", "TEXT"]),
+            generation_config={"response_modalities": ["IMAGE", "TEXT"]},
         )
 
         if not response.candidates:
