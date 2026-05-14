@@ -23,6 +23,11 @@ PROMPT = (
     "Generate a realistic image of this person in a gym setting, "
     "wearing athletic clothes, maintaining their facial features and build."
 )
+MODELS = [
+    "gemini-2.0-flash-exp-image-generation",
+    "gemini-2.5-flash-preview-05-20",
+    "gemini-2.0-flash",
+]
 MAX_DAILY = 3
 
 user_usage: dict = {}
@@ -58,16 +63,28 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         file = await context.bot.get_file(update.message.photo[-1].file_id)
         photo_bytes = bytes(await file.download_as_bytearray())
 
-        response = client.models.generate_content(
-            model="gemini-2.0-flash-exp-image-generation",
-            contents=[
-                types.Part.from_bytes(data=photo_bytes, mime_type="image/jpeg"),
-                PROMPT,
-            ],
-            config=types.GenerateContentConfig(
-                response_modalities=["IMAGE", "TEXT"]
-            ),
-        )
+        response = None
+        for model in MODELS:
+            try:
+                response = client.models.generate_content(
+                    model=model,
+                    contents=[
+                        types.Part.from_bytes(data=photo_bytes, mime_type="image/jpeg"),
+                        PROMPT,
+                    ],
+                    config=types.GenerateContentConfig(
+                        response_modalities=["IMAGE", "TEXT"]
+                    ),
+                )
+                logger.info("Used model: %s", model)
+                break
+            except Exception as model_err:
+                logger.warning("Model %s failed: %s", model, model_err)
+
+        if response is None:
+            decrement(user_id)
+            await update.message.reply_text("❌ All models unavailable. Please try again later.")
+            return
 
         if not response.candidates:
             decrement(user_id)
