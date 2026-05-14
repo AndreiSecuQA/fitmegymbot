@@ -33,11 +33,9 @@ PROMPT = (
     "wearing athletic clothes, maintaining their facial features and build."
 )
 MODELS = [
-    "gemini-2.0-flash-exp",
-    "gemini-2.0-flash-exp-image-generation",
-    "gemini-2.0-flash-preview-image-generation",
-    "gemini-2.5-flash-preview-05-20",
-    "gemini-2.5-pro-preview-05-06",
+    "gemini-2.5-flash-image",
+    "gemini-3.1-flash-image-preview",
+    "gemini-3-pro-image-preview",
 ]
 MAX_DAILY = 3
 
